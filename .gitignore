@@ -1,0 +1,16 @@
+# Virtual environments
+ssd-p/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Data (never commit raw/generated data)
+data/raw/
+data/intermediate/
+
+# OS / editor junk
+.DS_Store
+.vscode/
+
