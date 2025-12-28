@@ -14,6 +14,7 @@ import os
 import sys
 import csv
 import argparse
+import re
 from typing import List
 
 MAX_WORDS_PER_CHUNK = 200
@@ -39,8 +40,7 @@ def extract_text_from_pdf(pdf_path: str) -> str:
 def normalize_text(text: str) -> str:
     text = text.replace("\r", "\n")
     lines = [line.strip() for line in text.split("\n") if line.strip()]
-    return " ".join(lines)
-
+    return lines
 
 def sentence_split(text: str) -> List[str]:
     try:
@@ -50,10 +50,10 @@ def sentence_split(text: str) -> List[str]:
         raise RuntimeError("nltk not installed. Run: pip install nltk")
 
     for resource in ["punkt", "punkt_tab"]:
-    try:
-        nltk.data.find(f"tokenizers/{resource}")
-    except LookupError:
-        nltk.download(resource)
+        try:
+            nltk.data.find(f"tokenizers/{resource}")
+        except LookupError:
+            nltk.download(resource)
 
 
     return sent_tokenize(text)
@@ -123,8 +123,16 @@ def main():
     print("[2/5] Normalizing text...")
     clean_text = normalize_text(raw_text)
 
-    print("[3/5] Sentence splitting...")
-    sentences = sentence_split(clean_text)
+    print("[3/5] Sentence splitting (line-aware)...")
+    sentences = []
+
+    for line in clean_text:
+        if re.search(r"[.!?]", line):
+            line_sentences = sentence_split(line)
+            sentences.extend(line_sentences)
+        else:
+            sentences.append(line)
+
     print(f"    Total sentences: {len(sentences)}")
 
     print("[4/5] Chunking sentences...")
